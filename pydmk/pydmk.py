@@ -50,7 +50,7 @@ def dir(**kwargs):
     print("-----------------")
     N = len(data['filenames'])
     for i in range(N):
-        print("{}.{}   {}".format(data['filenames'][i].ljust(8), ...
+        print("{}.{}   {}".format(data['filenames'][i].ljust(8),
               data['extensions'][i], data['filesizes'][i]))
     print("FREE BYTES " + str(data['free_bytes']))
     pass
