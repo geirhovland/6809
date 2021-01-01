@@ -1,6 +1,9 @@
-# Reference: http://dragon32.info/info/drgndos.html
 # pydmk is released under the MIT license
 # Author: G. Hovland, December 2020
+#
+# Reference: http://dragon32.info/info/drgndos.html
+# The DMK disk format used by pydmk has been
+# tested with SuperDOS E6 for the Dragon 32/64
 
 import sys
 import click
@@ -15,7 +18,7 @@ def bytesToString(data):
 
 
 @click.group()
-@click.version_option("0.0.1")
+@click.version_option("0.0.1b")
 def main():
     """A Python tool for manipulating Dragondos DMK disk files"""
     pass
@@ -50,8 +53,8 @@ def dir(**kwargs):
     print("-----------------")
     N = len(data['filenames'])
     for i in range(N):
-        print("{}.{}   {}".format(data['filenames'][i].ljust(8),
-              data['extensions'][i], data['filesizes'][i]))
+        print("{}.{}   {} {}".format(data['filenames'][i].ljust(8),
+              data['extensions'][i], data['filesizes'][i], data['LSNs'][i]))
     print("FREE BYTES " + str(data['free_bytes']))
     pass
 

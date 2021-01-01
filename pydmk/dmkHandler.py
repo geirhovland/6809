@@ -70,10 +70,15 @@ class dmkHandler:
             j = j - self.sectors
             track = track + 1
 
-        if j < self.sectors/2:
+        if j < 9:
             i = 296 + track*self.track_length + (block+j)*676
-        else:
+        elif j < 9*2:
             i = 634 + track*self.track_length + (block+j-9)*676
+        elif j < 9*3:
+            i = 612 + track*self.track_length + (block+j-9)*676
+        else:
+            i = 950 + track*self.track_length + (block+j-9*2)*676
+
         index.append(i)
         if LastBlock:
             index.append(i + bytesLast)
@@ -124,13 +129,16 @@ class dmkHandler:
             in_file.close()
 
             self.cylinders = self.header[1]
-            self.track_length = self.num16(self.header, 0, 1, 2, 0)
+            if self.header[4] & 16 == 0:  # 2 sided
+                self.sectors = 36
+                self.track_length = 6400*2
+            else:
+                self.sectors = 18
+                self.track_length = 6400
             self.disk_size = self.cylinders*self.track_length
 
             in_file = open(self.filename, "rb")
-            self.data = in_file.read(self.disk_size + self.N_header)
-            # Sectors per track
-            self.sectors = self.data[296 + self.track_length*20 + 253]
+            self.data = in_file.read(self.disk_size)
             in_file.close()
 
     def info(self):
@@ -147,8 +155,11 @@ class dmkHandler:
         return out
 
     def dir(self):
-        free_bytes = 18*38*256
-        N = 129648
+        if self.sectors == 18:
+            free_bytes = self.sectors*(self.cylinders-2)*256
+        else:
+            free_bytes = self.sectors*(self.cylinders-1)*256
+        N = self.track_length*20 + 1648
         M = 25
         j = 0
         dirEnd = False
