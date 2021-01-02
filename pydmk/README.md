@@ -28,4 +28,8 @@ python3 pydmk.py cat FEdit_80_1.dmk INTRO.DOC
 python3 pydmk.py info FEdit_80_2.dmk
 python3 pydmk.py dir FEdit_80_2.dmk
 python3 pydmk.py cat FEdit_80_2.dmk INTRO.DOC
+
+# Conversion DMK -> CAS
+python3 pydmk.py fileinfo FEdit.dmk FEDIT.BIN
+python3 pydmk.py file2cas FEdit.dmk FEDIT.BIN
 ```

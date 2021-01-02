@@ -138,7 +138,7 @@ class dmkHandler:
             self.data = in_file.read(self.disk_size + self.N_header)
             in_file.close()
 
-    def info(self):
+    def diskinfo(self):
         out = {
             "write_protect": self.data[0],
             "cylinders": self.cylinders,
@@ -206,3 +206,96 @@ class dmkHandler:
                 LSN = mydir['LSNs'][i]
                 data = self.getData(LSN)
         return data
+
+    def fileinfo(self, filename):
+        search = filename.split('.')
+        mydir = self.dir()
+        data = []
+        out = []
+        for i in range(len(mydir['filenames'])):
+            file = mydir['filenames'][i].rstrip()
+            ext = mydir['extensions'][i]
+            if (file == search[0]) and (ext == search[1]):
+                LSN = mydir['LSNs'][i]
+                data = self.getData(LSN)
+
+        filetype = "DAT"
+        load_address = ""
+        file_length = ""
+        exec_address = ""
+        if len(data) > 0:
+            if data[1] == 1:
+                filetype = "BAS"
+                load_address = data[2]*256 + data[3]
+                file_length = data[4]*256 + data[5]
+                exec_address = data[6]*256 + data[7]
+            elif data[1] == 2:
+                filetype = "BIN"
+                load_address = data[2]*256 + data[3]
+                file_length = data[4]*256 + data[5]
+                exec_address = data[6]*256 + data[7]
+            out = {
+                "filetype": filetype,
+                "load_address": load_address,
+                "file_length": file_length,
+                "exec_address": exec_address
+            }
+        return out
+
+    def file2cas(self, filename):
+        N = 256
+        info = self.fileinfo(filename)
+        if len(info) > 0:
+            if info['filetype'] == 'DAT':
+                print("file2cas only implemented for BIN and BAS files.")
+            else:
+                data = self.cat(filename)
+                file = filename.split('.')
+                fid = open(file[0] + '.CAS', "wb")
+                for i in range(128):  # Leader block
+                    fid.write(b'\x55')
+                fid.write(b'\x55\x3c')  # Begin Header
+                header = b'\x00\x0f' + file[0].ljust(8).encode()
+                if info['filetype'] == 'BAS':
+                    header = header + b'\x00'
+                elif info['filetype'] == 'BIN':
+                    header = header + b'\x02'
+                else:
+                    header = header + b'\x01'
+                header = header + b'\x00'  # Binary
+                header = header + b'\x00'
+                address = info['exec_address'].to_bytes(2, byteorder='big')
+                header = header + address
+                address = info['load_address'].to_bytes(2, byteorder='big')
+                header = header + address
+                fid.write(header)
+                crc = sum(header)
+                fid.write((crc % N).to_bytes(1, byteorder='big'))
+                fid.write(b'\x55')  # End Header
+                for i in range(128):  # Another leader block
+                    fid.write(b'\x55')
+
+                M = N - 1
+                parts = floor(info['file_length'] / M)
+                i0 = 9  # DMK Header length
+                for i in range(parts):
+                    fid.write(b'\x55\x3c\x01\xff')  # Begin data block
+                    fid.write(data[i0 + i*M:i0 + (i+1)*M])
+                    crc = sum(data[i0 + i*M:i0 + (i+1)*M])
+                    fid.write((crc % N).to_bytes(1, byteorder='big'))
+                    fid.write(b'\x55')  # End data block
+
+                L = info['file_length'] - M*parts
+                if L > 0:  # Final data block
+                    fid.write(b'\x55\x3c\x01')
+                    fid.write(L.to_bytes(1, byteorder='big'))
+                    fid.write(data[i0 + parts*M:i0 + parts*M + L])
+                    crc = sum(data[i0 + parts*M:i0 + parts*M + L]) + 1 + L
+                    fid.write((crc % N).to_bytes(1, byteorder='big'))
+                    fid.write(b'\x55')  # End final data block
+
+                fid.write(b'\x55\x3c\xff')  # EOF
+                fid.close()
+                print("File {}.CAS created.".format(file[0]))
+        else:
+            print("File {} does not exist.".format(filename))

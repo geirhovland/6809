@@ -18,7 +18,7 @@ def bytesToString(data):
 
 
 @click.group()
-@click.version_option("0.0.1b")
+@click.version_option("0.0.2")
 def main():
     """A Python tool for manipulating Dragondos DMK disk files"""
     pass
@@ -26,10 +26,10 @@ def main():
 
 @main.command()
 @click.argument('dmk_file', required=True)
-def info(**kwargs):
+def diskinfo(**kwargs):
     """Get information about the disk"""
     mydisk = dmkHandler(kwargs.get("dmk_file"))
-    data = mydisk.info()
+    data = mydisk.diskinfo()
     print("Disk Info")
     print("---------")
     print("Write-protect       : " + str(data['write_protect']))
@@ -67,6 +67,40 @@ def cat(**kwargs):
     mydisk = dmkHandler(kwargs.get("dmk_file"))
     data = mydisk.cat(kwargs.get("filename"))
     print(data.decode('cp437'))  # Use IBM extended ASCII, Code Page 437
+    pass
+
+
+@main.command()
+@click.argument('dmk_file', required=True)
+@click.argument('filename', required=True)
+def fileinfo(**kwargs):
+    """Shows file header"""
+    mydisk = dmkHandler(kwargs.get("dmk_file"))
+    data = mydisk.fileinfo(kwargs.get("filename"))
+    if len(data) > 0:
+        print("File Info")
+        print("---------")
+        print("File Name           : " + kwargs.get("filename"))
+        print("File Type           : " + data['filetype'])
+        if data['filetype'] == "BAS":
+            print("Load Address        : " + str(data['load_address']))
+            print("File Length         : " + str(data['file_length']))
+        elif data['filetype'] == "BIN":
+            print("Load Address        : " + str(data['load_address']))
+            print("File Length         : " + str(data['file_length']))
+            print("Exec Address        : " + str(data['exec_address']))
+    else:
+        print("File {} does not exist.".format(kwargs.get("filename")))
+    pass
+
+
+@main.command()
+@click.argument('dmk_file', required=True)
+@click.argument('filename', required=True)
+def file2cas(**kwargs):
+    """Creates CAS file from file on disk"""
+    mydisk = dmkHandler(kwargs.get("dmk_file"))
+    mydisk.file2cas(kwargs.get("filename"))
     pass
 
 
