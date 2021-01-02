@@ -8,9 +8,6 @@ from math import floor
 class dmkHandler:
     '''Class for manipulating Dragondos disks on DMK format'''
 
-    def num16(self, data, N_header, N, i, j):
-        return data[N_header + i*N] + 256*data[N_header + i*N + j + 1]
-
     def toString(self, data):
         out = ""
         for i in range(len(data)):
@@ -138,7 +135,7 @@ class dmkHandler:
             self.disk_size = self.cylinders*self.track_length
 
             in_file = open(self.filename, "rb")
-            self.data = in_file.read(self.disk_size)
+            self.data = in_file.read(self.disk_size + self.N_header)
             in_file.close()
 
     def info(self):
