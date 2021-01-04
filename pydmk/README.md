@@ -32,4 +32,7 @@ python3 pydmk.py cat FEdit_80_2.dmk INTRO.DOC
 # Conversion DMK -> CAS
 python3 pydmk.py fileinfo FEdit.dmk FEDIT.BIN
 python3 pydmk.py file2cas FEdit.dmk FEDIT.BIN
+
+# Conversion DMK -> VDK
+python3 pydmk.py dmk2vdk FEdit_80_2.dmk
 ```

@@ -18,7 +18,7 @@ def bytesToString(data):
 
 
 @click.group()
-@click.version_option("0.0.2")
+@click.version_option("0.0.2b")
 def main():
     """A Python tool for manipulating Dragondos DMK disk files"""
     pass
@@ -101,6 +101,15 @@ def file2cas(**kwargs):
     """Creates CAS file from file on disk"""
     mydisk = dmkHandler(kwargs.get("dmk_file"))
     mydisk.file2cas(kwargs.get("filename"))
+    pass
+
+
+@main.command()
+@click.argument('dmk_file', required=True)
+def dmk2vdk(**kwargs):
+    """Creates VDK disk from DMK disk"""
+    mydisk = dmkHandler(kwargs.get("dmk_file"))
+    mydisk.dmk2vdk()
     pass
 
 

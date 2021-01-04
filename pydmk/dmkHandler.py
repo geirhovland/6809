@@ -83,6 +83,10 @@ class dmkHandler:
             index.append(i + 256)
         return index
 
+    def getSector(self, track, sector):
+        index = self.getIndex(sector, track, 0, 0, 0)
+        return self.data[index[0]:index[1]]
+
     def getData(self, LSN):
         out = b''  # Empty byte string
         for i in range(0, len(LSN)-1, 2):
@@ -299,3 +303,25 @@ class dmkHandler:
                 print("File {}.CAS created.".format(file[0]))
         else:
             print("File {} does not exist.".format(filename))
+
+    def dmk2vdk(self):
+        diskname = self.filename.split('.')
+        fid = open(diskname[0] + '.VDK', "wb")
+        header = b'\x64\x6b\x00\x01\x10\x10\x58\x00'
+        header = header + self.cylinders.to_bytes(1, byteorder='big')
+        if self.sectors == 18:  # 1-sided disk
+            header = header + b'\x01'
+        else:
+            header = header + b'\x02'
+        header = header + b'\x00'  # Compression flag
+        header = header + b'\x00'  # Name length
+        for i in range(12,256,1):
+            header = header + b'\x00'
+        fid.write(header)
+
+        for track in range(self.cylinders):
+            for sector in range(self.sectors):
+                block = self.getSector(track, sector)
+                fid.write(block)
+        fid.close()
+        print("Disk {}.VDK created.".format(diskname[0]))
